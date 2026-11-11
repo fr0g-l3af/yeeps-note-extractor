@@ -47,17 +47,40 @@ function buildCumBefore(measureDivisions, forceDivisions) {
 }
 
 /**
+ * @param {number} n
+ * @returns {string}
+ */
+function formatBpm(n) {
+  return String(Math.round(n * 10) / 10);
+}
+
+/**
  * @param {Record<number, Record<number, string[]>>} measuresData
  * @param {{
  *   tempo: number,
  *   everyDivision: boolean,
  *   measureDivisions: Record<number, number>,
  *   forceDivisions: number | null,
+ *   followTempoChanges?: boolean,
+ *   tempoMarks?: {
+ *     measure: number,
+ *     divisionIndex: number,
+ *     quarterBpm: number,
+ *     yeepsTempo: number,
+ *   }[],
  * }} options
  * @returns {string}
  */
 export function formatYeepsText(measuresData, options) {
-  const { tempo, everyDivision, measureDivisions, forceDivisions = null } = options;
+  const {
+    tempo,
+    everyDivision,
+    measureDivisions,
+    forceDivisions = null,
+    followTempoChanges = false,
+    tempoMarks = [],
+  } = options;
+  const useFollow = followTempoChanges && tempoMarks.length > 0;
   const { spacesPerDivision } = getTempoPattern(tempo);
   const everySpacer =
     spacesPerDivision <= 1
@@ -88,6 +111,73 @@ export function formatYeepsText(measuresData, options) {
   const absoluteOffset = (measure, divisionBased) =>
     (cumBefore[measure] ?? 0) + divisionBased - 1;
 
+  const sortedMarks = useFollow
+    ? tempoMarks
+        .map((mark) => {
+          const pattern = getTempoPattern(mark.yeepsTempo);
+          return {
+            abs: absoluteOffset(mark.measure, mark.divisionIndex + 1),
+            yeepsTempo: mark.yeepsTempo,
+            spacesPerDivision: pattern.spacesPerDivision,
+            quarterBpm: mark.quarterBpm,
+            measure: mark.measure,
+            divisionIndex: mark.divisionIndex,
+          };
+        })
+        .sort((a, b) => a.abs - b.abs)
+    : [];
+
+  /**
+   * @param {number} abs
+   */
+  const spacesAt = (abs) => {
+    let spd = spacesPerDivision;
+    for (const mark of sortedMarks) {
+      if (mark.abs <= abs) spd = mark.spacesPerDivision;
+      else break;
+    }
+    return spd;
+  };
+
+  /**
+   * Latest snapped mark at or before this sixteenth, if follow is on.
+   * @param {number} abs
+   */
+  const markAt = (abs) => {
+    /** @type {(typeof sortedMarks)[number] | null} */
+    let mark = null;
+    for (const candidate of sortedMarks) {
+      if (candidate.abs <= abs) mark = candidate;
+      else break;
+    }
+    return mark;
+  };
+
+  /** @type {number | null} */
+  let previousYeeps = null;
+
+  /**
+   * One comment when the Yeeps tempo at this onset differs from the previous onset.
+   * @param {number} abs
+   * @returns {string | null}
+   */
+  const tempoChangeComment = (abs) => {
+    const mark = markAt(abs);
+    const yeeps = mark ? mark.yeepsTempo : tempo;
+    if (previousYeeps === null) {
+      previousYeeps = yeeps;
+      return null;
+    }
+    if (yeeps === previousYeeps) return null;
+    previousYeeps = yeeps;
+    if (!mark) return null;
+    const spd = mark.spacesPerDivision;
+    const beat = mark.divisionIndex + 1;
+    const slots = slotsFor(mark.measure);
+    const unit = spd === 1 ? "space" : "spaces";
+    return `  # tempo change: score ♩=${formatBpm(mark.quarterBpm)} → Yeeps ♩=${yeeps} (${spd} ${unit}) at m.${mark.measure} beat ${beat}/${slots}`;
+  };
+  
   for (const measure of measureKeys) {
     lines.push(`Measure ${measure}:`);
     const divisions = measuresData[measure];
@@ -101,8 +191,16 @@ export function formatYeepsText(measuresData, options) {
         const division = i + 1;
         const pitches = divisions[i] || [];
         const colored = pitches.map(paintLabel);
-        const spacer = everySpacer
-          ? `\n  ${division}b ${everySpacer}`
+        let spacerSource = everySpacer;
+        if (useFollow) {
+          const abs = absoluteOffset(measure, division);
+          const comment = tempoChangeComment(abs);
+          if (comment) lines.push(comment);
+          const spd = spacesAt(abs);
+          spacerSource = spd <= 1 ? "" : packDelays(spd - 1).join(" + ");
+        }
+        const spacer = spacerSource
+          ? `\n  ${division}b ${spacerSource}`
           : "";
 
         if (!pitches.length) {
@@ -123,12 +221,28 @@ export function formatYeepsText(measuresData, options) {
 
         if (previousDivision === null) {
           previousDivision = [measure, division];
+          if (useFollow) {
+            const comment = tempoChangeComment(absoluteOffset(measure, division));
+            if (comment) lines.push(comment);
+          }
         } else {
           const [pM, pD] = previousDivision;
           previousDivision = [measure, division];
-          const gap =
-            absoluteOffset(measure, division) - absoluteOffset(pM, pD);
-          const spaces = gap * spacesPerDivision - 1;
+          const prevAbs = absoluteOffset(pM, pD);
+          const currAbs = absoluteOffset(measure, division);
+          const gap = currAbs - prevAbs;
+          let spaces;
+          if (useFollow) {
+            spaces = 0;
+            for (let abs = prevAbs + 1; abs <= currAbs; abs++) {
+              spaces += spacesAt(abs);
+            }
+            spaces -= 1;
+            const comment = tempoChangeComment(currAbs);
+            if (comment) lines.push(comment);
+          } else {
+            spaces = gap * spacesPerDivision - 1;
+          }
 
           lines.push(`  # spaces: ${spaces}`);
           delays = packDelays(spaces);
