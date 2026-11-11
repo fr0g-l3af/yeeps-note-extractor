@@ -94,6 +94,10 @@
       opacity: 0.45;
       cursor: not-allowed;
     }
+    select:disabled,
+    input:disabled {
+      opacity: 0.55;
+    }
     .error {
       color: #8b1e1e;
       background: #f8e4e4;
@@ -176,7 +180,7 @@
         <li><strong>Simple scores</strong> — score-partwise MusicXML from MuseScore-style exports. No repeat/ending expansion, no timewise scores.</li>
         <li><strong>Pitch range</strong> — only pitches covered by Yeeps paints map; others show as <code>No Paint</code>.</li>
         <li><strong>Tempo</strong> — Yeeps patterns are keyed by <strong>quarter-note</strong> BPM (♩ = 300...33). Metronome markings in other units (e.g. ♪ = 120) are converted to ♩ before snapping.</li>
-        <li><strong>No mid-score tempo changes</strong> — only the first tempo marking is used; the whole piece gets one Yeeps space pattern. Later ritardandi / new metronome marks are ignored.</li>
+        <li><strong>Tempo changes</strong> — followed only when “follow tempo changes” is checked. Each numeric metronome or sound tempo snaps to the nearest Yeeps tempo and applies from that point on. Leave it unchecked to keep the dropdown tempo for the whole piece. Ritardandi and other text marks without a number are ignored.</li>
       </ul>
     </details>
 
@@ -200,6 +204,10 @@
         <label>
           Yeeps tempo (♩)
           <select id="tempo"></select>
+        </label>
+        <label class="check">
+          <input id="followTempos" type="checkbox" disabled />
+          follow tempo changes
         </label>
         <label>
           Force divisions
