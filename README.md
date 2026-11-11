@@ -19,6 +19,7 @@ The Yeeps Note Extractor is a web-based application designed to extract musical 
    - Go to the web interface.
    - Click on the "Upload" button to select and upload a MusicXML file. You can use the example file `examples/never-gonna-give-you-up-yeeps.musicxml` provided in the repository.
    - Approve the auto selection or choose a tempo from the dropdown menu.
+   - Leave “follow tempo changes” unchecked to keep that one tempo for the whole piece. Check it to follow each numeric tempo marking from that point on, snapped to the nearest Yeeps tempo. Marks without a number (rit., accel.) are ignored.
    - Adjust the number of divisions if needed (usually not).
    - Click the "Convert" button to see the extracted note map.
    - Click the "Download .txt" button to download/copy the text file.
