@@ -207,8 +207,33 @@ export function metronomeToQuarterBpm(unit, bpm, dotted = false) {
  *   quarterBpm: number,
  * } | null}
  */
-function readMetronome(score) {
-  const metro = score.querySelector("metronome");
+/**
+ * @typedef {Object} TempoMark
+ * @property {number} measure
+ * @property {number} divisionIndex 0-based sixteenth slot where the mark takes effect
+ * @property {number} quarterBpm Score tempo in quarter-note BPM
+ * @property {number} yeepsTempo Nearest Yeeps tempo
+ * @property {{
+ *   unit: string,
+ *   bpm: number,
+ *   dotted: boolean,
+ *   symbol: string,
+ *   quarterBpm: number,
+ * } | null} metronome Printed metronome, or null when the mark is sound tempo only
+ */
+
+/**
+ * @param {Document|Element} scope
+ * @returns {{
+ *   unit: string,
+ *   bpm: number,
+ *   dotted: boolean,
+ *   symbol: string,
+ *   quarterBpm: number,
+ * } | null}
+ */
+function readMetronome(scope) {
+  const metro = scope.querySelector("metronome");
   if (!metro) return null;
   const unit = metro.querySelector("beat-unit")?.textContent?.trim();
   const perMinText = metro.querySelector("per-minute")?.textContent?.trim();
@@ -228,7 +253,54 @@ function readMetronome(score) {
 }
 
 /**
- * Light peek: meters + first tempo marking (no note walk).
+ * Direction offset in divisions. Does not move the note cursor.
+ * @param {Element} directionEl
+ * @returns {number}
+ */
+function readOffsetDivisions(directionEl) {
+  for (const child of directionEl.children) {
+    if (!child.tagName || child.tagName.toLowerCase() !== "offset") continue;
+    const n = Number(child.textContent?.trim());
+    return Number.isFinite(n) ? n : 0;
+  }
+  return 0;
+}
+
+/**
+ * Numeric tempo on a direction (metronome, else sound@tempo) or a bare sound.
+ * Words-only marks (rit., accel.) return null.
+ * @param {Element} el
+ * @returns {{
+ *   quarterBpm: number,
+ *   metronome: TempoMark["metronome"],
+ *   offsetDiv: number,
+ * } | null}
+ */
+function readTempoEvent(el) {
+  const tag = el.tagName.toLowerCase();
+  if (tag === "direction") {
+    const offsetDiv = readOffsetDivisions(el);
+    const metronome = readMetronome(el);
+    if (metronome) {
+      return { quarterBpm: metronome.quarterBpm, metronome, offsetDiv };
+    }
+    const soundEl = el.querySelector("sound[tempo]");
+    if (!soundEl) return null;
+    const t = Number(soundEl.getAttribute("tempo"));
+    if (!Number.isFinite(t) || t <= 0) return null;
+    return { quarterBpm: t, metronome: null, offsetDiv };
+  }
+  if (tag === "sound") {
+    const t = Number(el.getAttribute("tempo"));
+    if (!Number.isFinite(t) || t <= 0) return null;
+    return { quarterBpm: t, metronome: null, offsetDiv: 0 };
+  }
+  return null;
+}
+
+/**
+ * Light peek: meters + tempo markings.
+ * Tempos come from the same measure walk as note extraction.
  * Accepts XML string or a parsed Document (reuse after parse).
  * @param {string | Document} xmlTextOrDoc
  * @returns {{
@@ -239,6 +311,7 @@ function readMetronome(score) {
  *   metronome: { unit: string, bpm: number, dotted: boolean, symbol: string, quarterBpm: number } | null,
  *   scoreTempo: number | null,
  *   suggestedTempo: number | null,
+ *   tempoMarks: TempoMark[],
  * }}
  */
 export function peekScoreSettings(xmlTextOrDoc) {
@@ -284,17 +357,14 @@ export function peekScoreSettings(xmlTextOrDoc) {
     });
   }
 
-  const metronome = readMetronome(score);
-  let scoreTempo = null;
-  if (metronome) {
-    scoreTempo = metronome.quarterBpm;
-  } else {
-    const soundEl = score.querySelector("sound[tempo]");
-    if (soundEl) {
-      const t = Number(soundEl.getAttribute("tempo"));
-      if (Number.isFinite(t) && t > 0) scoreTempo = t;
-    }
+  /** @type {TempoMark[]} */
+  let tempoMarks = [];
+  if (score.querySelector("part")) {
+    tempoMarks = extractPitchesByMeasureAndDivision(xmlTextOrDoc).tempoMarks;
   }
+  const earliest = tempoMarks[0] ?? null;
+  const metronome = earliest?.metronome ?? null;
+  const scoreTempo = earliest ? earliest.quarterBpm : null;
 
   const first = meters[0];
   return {
@@ -304,7 +374,8 @@ export function peekScoreSettings(xmlTextOrDoc) {
     meters,
     metronome,
     scoreTempo,
-    suggestedTempo: scoreTempo === null ? null : snapYeepsTempo(scoreTempo),
+    suggestedTempo: earliest ? earliest.yeepsTempo : null,
+    tempoMarks,
   };
 }
 
@@ -313,6 +384,7 @@ export function peekScoreSettings(xmlTextOrDoc) {
  * @returns {{
  *   measuresData: Record<number, Record<number, string[]>>,
  *   measureDivisions: Record<number, number>,
+ *   tempoMarks: TempoMark[],
  * }}
  */
 export function extractPitchesByMeasureAndDivision(xmlTextOrDoc) {
@@ -321,12 +393,41 @@ export function extractPitchesByMeasureAndDivision(xmlTextOrDoc) {
   const measuresData = {};
   /** @type {Record<number, number>} */
   const measureDivisions = {};
+  /**
+   * One mark per measure + sixteenth. Same part: last mark in that slot wins.
+   * A later part does not replace a mark the first part already placed there.
+   * @type {Map<string, TempoMark & { partIndex: number }>}
+   */
+  const marksBySlot = new Map();
   const parts = score.querySelectorAll("part");
   if (!parts.length) {
     throw new Error("No parts found in score");
   }
 
-  for (const part of parts) {
+  /**
+   * @param {number} partIndex
+   * @param {number} measure
+   * @param {number} divisionIndex
+   * @param {number} quarterBpm
+   * @param {TempoMark["metronome"]} metronome
+   */
+  const putTempoMark = (partIndex, measure, divisionIndex, quarterBpm, metronome) => {
+    if (!Number.isFinite(divisionIndex)) return;
+    const key = `${measure}:${divisionIndex}`;
+    const existing = marksBySlot.get(key);
+    if (existing && existing.partIndex < partIndex) return;
+    marksBySlot.set(key, {
+      partIndex,
+      measure,
+      divisionIndex,
+      quarterBpm,
+      yeepsTempo: snapYeepsTempo(quarterBpm),
+      metronome,
+    });
+  };
+
+  for (let partIndex = 0; partIndex < parts.length; partIndex++) {
+    const part = parts[partIndex];
     const measureEls = [...part.children].filter(
       (el) => el.tagName && el.tagName.toLowerCase() === "measure",
     );
@@ -350,9 +451,23 @@ export function extractPitchesByMeasureAndDivision(xmlTextOrDoc) {
       let lastNoteOnset = 0;
       /** @type {{ offsetDiv: number, pitch: string }[]} */
       const events = [];
+      /** @type {{ offsetDiv: number, quarterBpm: number, metronome: TempoMark["metronome"] }[]} */
+      const pendingTempos = [];
 
       for (const child of measureEl.children) {
         const tag = child.tagName.toLowerCase();
+        if (tag === "direction" || tag === "sound") {
+          const tempoEv = readTempoEvent(child);
+          if (tempoEv) {
+            pendingTempos.push({
+              offsetDiv: cursor + tempoEv.offsetDiv,
+              quarterBpm: tempoEv.quarterBpm,
+              metronome: tempoEv.metronome,
+            });
+          }
+          continue;
+        }
+
         if (tag === "attributes") {
           const divEl = child.querySelector("divisions");
           if (divEl?.textContent) {
@@ -442,7 +557,31 @@ export function extractPitchesByMeasureAndDivision(xmlTextOrDoc) {
         }
         measuresData[measureNumber][divisionIndex].push(ev.pitch);
       }
+
+      for (const tempoEv of pendingTempos) {
+        const divisionIndex = Math.floor(
+          (tempoEv.offsetDiv / divisions + offsetAdjustment) / sixteenthQl + 1e-9,
+        );
+        putTempoMark(
+          partIndex,
+          measureNumber,
+          divisionIndex,
+          tempoEv.quarterBpm,
+          tempoEv.metronome,
+        );
+      }
     }
   }
-  return { measuresData, measureDivisions };
+
+  const tempoMarks = [...marksBySlot.values()]
+    .map(({ measure, divisionIndex, quarterBpm, yeepsTempo, metronome }) => ({
+      measure,
+      divisionIndex,
+      quarterBpm,
+      yeepsTempo,
+      metronome,
+    }))
+    .sort((a, b) => a.measure - b.measure || a.divisionIndex - b.divisionIndex);
+
+  return { measuresData, measureDivisions, tempoMarks };
 }
