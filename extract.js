@@ -1,5 +1,5 @@
 import { packDelays, paintForPitch } from "./paints.js";
-import { getTempoPattern } from "./tempos.js";
+import { getGrid, getTempoPattern } from "./tempos.js";
 
 /**
  * Format like Python repr of a list of strings.
@@ -22,12 +22,9 @@ function paintLabel(pitch) {
   return `No Paint (${pitch})`;
 }
 
-/** Musical symbol sixteenth note (matches NoteExtractor.py output). */
-const SIXTEENTH = "\u{1D161}";
-
 /**
  * Prefix sums of measure lengths so absoluteOffset is O(1).
- * cumBefore[n] = sixteenths before measure n (sparse object keyed by measure #).
+ * cumBefore[n] = grid slots before measure n (sparse object keyed by measure #).
  * @param {Record<number, number>} measureDivisions
  * @param {number | null} forceDivisions
  * @returns {Record<number, number>}
@@ -61,6 +58,7 @@ function formatBpm(n) {
  *   everyDivision: boolean,
  *   measureDivisions: Record<number, number>,
  *   forceDivisions: number | null,
+ *   gridId: string,
  *   followTempoChanges?: boolean,
  *   tempoMarks?: {
  *     measure: number,
@@ -77,19 +75,27 @@ export function formatYeepsText(measuresData, options) {
     everyDivision,
     measureDivisions,
     forceDivisions = null,
+    gridId,
     followTempoChanges = false,
     tempoMarks = [],
   } = options;
+  const grid = getGrid(gridId);
   const useFollow = followTempoChanges && tempoMarks.length > 0;
-  const { spacesPerDivision } = getTempoPattern(tempo);
+  const { spacesPerDivision } = getTempoPattern(tempo, gridId);
   const everySpacer =
     spacesPerDivision <= 1
       ? ""
       : packDelays(spacesPerDivision - 1).join(" + ");
   const cumBefore = buildCumBefore(measureDivisions, forceDivisions);
+  const maxOnsetPerMin = Math.round(1200 / spacesPerDivision);
 
   /** @type {string[]} */
   const lines = [];
+  lines.push(
+    `# grid=${grid.id}, Yeeps ♩=${tempo} (${spacesPerDivision} space${
+      spacesPerDivision === 1 ? "" : "s"
+    }), max onset ${maxOnsetPerMin}/min`,
+  );
   let blockCount = 0;
   /** @type {[number, number] | null} */
   let previousDivision = null;
@@ -114,7 +120,7 @@ export function formatYeepsText(measuresData, options) {
   const sortedMarks = useFollow
     ? tempoMarks
         .map((mark) => {
-          const pattern = getTempoPattern(mark.yeepsTempo);
+          const pattern = getTempoPattern(mark.yeepsTempo, gridId);
           return {
             abs: absoluteOffset(mark.measure, mark.divisionIndex + 1),
             yeepsTempo: mark.yeepsTempo,
@@ -140,7 +146,7 @@ export function formatYeepsText(measuresData, options) {
   };
 
   /**
-   * Latest snapped mark at or before this sixteenth, if follow is on.
+   * Latest snapped mark at or before this grid slot, if follow is on.
    * @param {number} abs
    */
   const markAt = (abs) => {
@@ -177,7 +183,7 @@ export function formatYeepsText(measuresData, options) {
     const unit = spd === 1 ? "space" : "spaces";
     return `  # tempo change: score ♩=${formatBpm(mark.quarterBpm)} → Yeeps ♩=${yeeps} (${spd} ${unit}) at m.${mark.measure} beat ${beat}/${slots}`;
   };
-  
+
   for (const measure of measureKeys) {
     lines.push(`Measure ${measure}:`);
     const divisions = measuresData[measure];
@@ -250,7 +256,7 @@ export function formatYeepsText(measuresData, options) {
         }
 
         lines.push(
-          `${spacer}  ${SIXTEENTH} beat ${division}/${numDivisions} AllWire + Note Blocks (${colored.length})`,
+          `${spacer}  ${grid.symbol} beat ${division}/${numDivisions} AllWire + Note Blocks (${colored.length})`,
         );
         lines.push(`  - ${pyList(colored)}`);
         blockCount += delays.length + colored.length + 1;

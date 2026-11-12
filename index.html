@@ -152,6 +152,21 @@
     .limits li {
       margin: 0.35rem 0;
     }
+    .limits table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0.65rem 0 0.35rem;
+      font-size: 0.85rem;
+    }
+    .limits th,
+    .limits td {
+      border: 1px solid #c4b89a;
+      padding: 0.3rem 0.45rem;
+      text-align: left;
+    }
+    .limits th {
+      background: #e8e0d0;
+    }
     pre {
       margin: 0;
       padding: 1rem;
@@ -174,14 +189,28 @@
     <details class="limits">
       <summary>Limitations (read before converting)</summary>
       <ul>
-        <li><strong>Sixteenth-note grid only</strong> — timing snaps to sixteenths. 32nds, 64ths, and anything faster than a sixteenth won't place correctly.</li>
-        <li><strong>No tuplets</strong> — triplets, quintuplets, etc. don't map cleanly onto Yeeps wire/delay timing; simplify the score first.</li>
+        <li><strong>Note grid</strong> — choose 8th, 16th, 32nd, or 64th. Yeeps max onset rate is 1200/min (1 wire space). Conversion is <strong>blocked</strong> if any onset misses the selected grid, or if follow-tempo marks exceed that grid’s 1-space max ♩.</li>
+        <li><strong>Capability (♩ at 1 space)</strong> — finer grids need slower tempos:
+          <table>
+            <thead>
+              <tr><th>Grid</th><th>Max ♩ (1 space)</th><th>Example at 2 spaces</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>8th</td><td>600</td><td>300</td></tr>
+              <tr><td>16th</td><td>300</td><td>150</td></tr>
+              <tr><td>32nd</td><td>150</td><td>75</td></tr>
+              <tr><td>64th</td><td>75</td><td>38</td></tr>
+            </tbody>
+          </table>
+          Formula: ♩ = round(1200 / (N × spaces)) where N is notes per quarter (2 / 4 / 8 / 16).
+        </li>
+        <li><strong>No tuplets</strong> — triplets, quintuplets, etc. that miss the 64th grid are blocked; simplify the score first.</li>
         <li><strong>Grace notes are skipped</strong> — they are ignored and do not produce note blocks.</li>
         <li><strong>Tied notes</strong> — only the start of a tie is an onset; continuations are not repeated (intended for Yeeps).</li>
         <li><strong>Simple scores</strong> — score-partwise MusicXML from MuseScore-style exports. No repeat/ending expansion, no timewise scores.</li>
         <li><strong>Pitch range</strong> — only pitches covered by Yeeps paints map; others show as <code>No Paint</code>.</li>
-        <li><strong>Tempo</strong> — Yeeps patterns are keyed by <strong>quarter-note</strong> BPM (♩ = 300...33). Metronome markings in other units (e.g. ♪ = 120) are converted to ♩ before snapping.</li>
-        <li><strong>Tempo changes</strong> — followed only when “follow tempo changes” is checked. Each numeric metronome or sound tempo snaps to the nearest Yeeps tempo and applies from that point on. Leave it unchecked to keep the dropdown tempo for the whole piece. Ritardandi and other text marks without a number are ignored.</li>
+        <li><strong>Tempo</strong> — Yeeps patterns are keyed by <strong>quarter-note</strong> BPM for the selected grid. Metronome markings in other units (e.g. ♪ = 120) are converted to ♩ before snapping.</li>
+        <li><strong>Tempo changes</strong> — followed only when “follow tempo changes” is checked. Each numeric metronome or sound tempo snaps to the nearest Yeeps tempo for the selected grid. Leave it unchecked to keep the dropdown tempo for the whole piece. Ritardandi and other text marks without a number are ignored.</li>
       </ul>
     </details>
 
@@ -203,6 +232,10 @@
 
       <div class="row">
         <label>
+          Note grid
+          <select id="grid"></select>
+        </label>
+        <label>
           Yeeps tempo (♩)
           <select id="tempo"></select>
         </label>
@@ -212,7 +245,7 @@
         </label>
         <label>
           Force divisions
-          <input id="numDivisions" type="number" min="1" max="64" placeholder="auto from score" />
+          <input id="numDivisions" type="number" min="1" max="128" placeholder="auto from score" />
         </label>
         <label class="check">
           <input id="everyDivision" type="checkbox" />
