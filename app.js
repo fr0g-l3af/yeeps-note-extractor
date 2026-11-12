@@ -3,12 +3,22 @@ import {
   parseXmlDocument,
   extractPitchesByMeasureAndDivision,
   peekScoreSettings,
+  onsetsFitGrid,
+  detectNeededGrid,
 } from "./musicxml.js";
 import { formatYeepsText } from "./extract.js";
-import { TEMPO_PATTERNS } from "./tempos.js";
+import {
+  DEFAULT_GRID_ID,
+  GRIDS,
+  getGrid,
+  maxTempoForGrid,
+  patternsForGrid,
+  snapYeepsTempo,
+} from "./tempos.js";
 
 const form = document.getElementById("form");
 const fileInput = document.getElementById("file");
+const gridSelect = document.getElementById("grid");
 const tempoSelect = document.getElementById("tempo");
 const numDivisionsInput = document.getElementById("numDivisions");
 const everyDivisionInput = document.getElementById("everyDivision");
@@ -21,16 +31,40 @@ const suggestText = document.getElementById("suggestText");
 const suggestUse = document.getElementById("suggestUse");
 const suggestKeep = document.getElementById("suggestKeep");
 
-/** Populate tempo <select> from TEMPO_PATTERNS (single source of truth). */
-for (const { tempo, spacesPerDivision } of TEMPO_PATTERNS) {
+/** Populate grid <select> from GRIDS. */
+for (const grid of GRIDS) {
   const opt = document.createElement("option");
-  opt.value = String(tempo);
-  opt.textContent = `${tempo} (${spacesPerDivision} space${
-    spacesPerDivision === 1 ? "" : "s"
-  })`;
-  if (tempo === 60) opt.selected = true;
-  tempoSelect.appendChild(opt);
+  opt.value = grid.id;
+  opt.textContent = `${grid.label} (max ♩=${maxTempoForGrid(grid.id)} at 1 space)`;
+  if (grid.id === DEFAULT_GRID_ID) opt.selected = true;
+  gridSelect.appendChild(opt);
 }
+
+/**
+ * Rebuild tempo options for the current grid. Prefer nearest prior ♩.
+ * @param {number} [preferTempo]
+ */
+function rebuildTempoOptions(preferTempo) {
+  const gridId = gridSelect.value;
+  const patterns = patternsForGrid(gridId);
+  const previous = preferTempo ?? Number(tempoSelect.value);
+  const target = Number.isFinite(previous)
+    ? snapYeepsTempo(previous, gridId)
+    : snapYeepsTempo(60, gridId);
+
+  tempoSelect.innerHTML = "";
+  for (const { tempo, spacesPerDivision } of patterns) {
+    const opt = document.createElement("option");
+    opt.value = String(tempo);
+    opt.textContent = `${tempo} (${spacesPerDivision} space${
+      spacesPerDivision === 1 ? "" : "s"
+    })`;
+    if (tempo === target) opt.selected = true;
+    tempoSelect.appendChild(opt);
+  }
+}
+
+rebuildTempoOptions(60);
 
 let lastText = "";
 let lastBaseName = "yeeps-notes";
@@ -109,6 +143,12 @@ function buildSuggestionMessage(settings) {
   );
   const parts = [];
 
+  if (settings.neededGrid) {
+    parts.push(`needs ${settings.neededGrid}s`);
+  } else if (settings.gridReason) {
+    parts.push(settings.gridReason);
+  }
+
   if (settings.meters.length === 1) {
     parts.push(
       `Detected ${meterParts[0]} divisions per measure (auto from score)`,
@@ -122,7 +162,14 @@ function buildSuggestionMessage(settings) {
   if (settings.tempoMarks.length > 1) {
     parts.push(`tempos: ${settings.tempoMarks.map(describeMark).join("; ")}`);
   } else if (settings.suggestedTempo !== null && settings.scoreTempo !== null) {
-    const yeeps = `Yeeps ♩=${settings.suggestedTempo}`;
+    const gridLabel = settings.neededGrid || DEFAULT_GRID_ID;
+    const pattern = patternsForGrid(gridLabel).find(
+      (p) => p.tempo === settings.suggestedTempo,
+    );
+    const spaces = pattern ? pattern.spacesPerDivision : "?";
+    const yeeps = `Yeeps ♩=${settings.suggestedTempo} (${gridLabel} · ${spaces} space${
+      spaces === 1 ? "" : "s"
+    })`;
     if (settings.metronome) {
       const m = settings.metronome;
       const mark = `${m.symbol}=${m.bpm}`;
@@ -142,7 +189,7 @@ function buildSuggestionMessage(settings) {
   }
 
   const noun = settings.tempoMarks.length > 1 ? "tempos" : "tempo";
-  return `${parts.join("; ")}. Use detected ${noun} and auto divisions?`;
+  return `${parts.join("; ")}. Use detected grid, ${noun}, and auto divisions?`;
 }
 
 /**
@@ -150,6 +197,12 @@ function buildSuggestionMessage(settings) {
  */
 function applySuggestion(settings) {
   numDivisionsInput.value = "";
+  if (settings.neededGrid) {
+    gridSelect.value = settings.neededGrid;
+    rebuildTempoOptions(settings.suggestedTempo ?? undefined);
+  } else if (settings.suggestedTempo != null) {
+    rebuildTempoOptions(settings.suggestedTempo);
+  }
   if (settings.suggestedTempo != null) {
     tempoSelect.value = String(settings.suggestedTempo);
   }
@@ -163,19 +216,33 @@ function applySuggestion(settings) {
  * @param {ReturnType<typeof peekScoreSettings>} settings
  */
 function showSuggestion(settings) {
+  if (settings.gridReason && !settings.neededGrid) {
+    showError(settings.gridReason);
+  }
+
   const currentTempo = Number(tempoSelect.value);
+  const currentGrid = gridSelect.value;
   const force = numDivisionsInput.value.trim();
   const tempoMatches =
     settings.suggestedTempo === null || settings.suggestedTempo === currentTempo;
+  const gridMatches =
+    settings.neededGrid === null || settings.neededGrid === currentGrid;
   const divisionsAreAuto = force === "";
-    const hasLaterMarks = settings.tempoMarks.length > 1;
+  const hasLaterMarks = settings.tempoMarks.length > 1;
 
   if (
     tempoMatches &&
+    gridMatches &&
     divisionsAreAuto &&
     settings.meters.length === 1 &&
-    !hasLaterMarks
+    !hasLaterMarks &&
+    !settings.gridReason
   ) {
+    hideSuggestion();
+    return;
+  }
+
+  if (!settings.neededGrid && settings.gridReason) {
     hideSuggestion();
     return;
   }
@@ -183,6 +250,41 @@ function showSuggestion(settings) {
   pendingSuggestion = settings;
   suggestText.textContent = buildSuggestionMessage(settings);
   suggestEl.hidden = false;
+}
+
+/**
+ * Validate selected grid/tempo against the loaded score. Throws on failure.
+ * @param {Document} doc
+ * @param {string} gridId
+ * @param {boolean} followTempoChanges
+ * @param {{ quarterBpm: number }[]} tempoMarks
+ */
+function assertConvertible(doc, gridId, followTempoChanges, tempoMarks) {
+  const { neededGrid, gridReason } = detectNeededGrid(doc);
+  if (!neededGrid) {
+    throw new Error(
+      gridReason ||
+        "Score onsets do not fit any supported grid (8th–64th). Simplify the score first.",
+    );
+  }
+  if (!onsetsFitGrid(doc, gridId)) {
+    throw new Error(
+      `Selected ${gridId} grid cannot place every onset. This score needs the ${neededGrid} grid (or finer).`,
+    );
+  }
+  if (followTempoChanges && tempoMarks.length > 0) {
+    const maxQ = maxTempoForGrid(gridId);
+    const tooFast = tempoMarks.filter((m) => m.quarterBpm > maxQ);
+    if (tooFast.length) {
+      const examples = tooFast
+        .slice(0, 3)
+        .map((m) => `♩=${formatBpm(m.quarterBpm)}`)
+        .join(", ");
+      throw new Error(
+        `Follow-tempo: score tempo ${examples} exceeds max ♩=${maxQ} for the ${gridId} grid (1-space limit). Choose a coarser grid or slow the score.`,
+      );
+    }
+  }
 }
 
 /**
@@ -198,6 +300,10 @@ async function loadScore(file) {
   cachedSettings = settings;
   return { doc, settings };
 }
+
+gridSelect.addEventListener("change", () => {
+  rebuildTempoOptions();
+});
 
 fileInput.addEventListener("change", async () => {
   hideSuggestion();
@@ -252,12 +358,15 @@ form.addEventListener("submit", async (event) => {
     return;
   }
 
+  const gridId = gridSelect.value;
   const tempo = Number(tempoSelect.value);
   const everyDivision = everyDivisionInput.checked;
 
   let forceDivisions;
   try {
     forceDivisions = readForceDivisions();
+    getGrid(gridId);
+    patternsForGrid(gridId); // validate grid
   } catch (err) {
     showError(err?.message || String(err));
     return;
@@ -271,12 +380,14 @@ form.addEventListener("submit", async (event) => {
       syncFollowControl();
     }
     const { measuresData, measureDivisions, tempoMarks } =
-      extractPitchesByMeasureAndDivision(doc);
+      extractPitchesByMeasureAndDivision(doc, { gridId });
+    assertConvertible(doc, gridId, followTemposInput.checked, tempoMarks);
     lastText = formatYeepsText(measuresData, {
       tempo,
       everyDivision,
       measureDivisions,
       forceDivisions,
+      gridId,
       followTempoChanges: followTemposInput.checked,
       tempoMarks,
     });
