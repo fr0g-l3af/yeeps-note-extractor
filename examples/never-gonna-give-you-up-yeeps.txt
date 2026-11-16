@@ -1,300 +1,244 @@
+# file=never-gonna-give-you-up-yeeps.musicxml
+# grid=16th, Yeeps ♩=150 (2 spaces), max onset 600/min
 Measure 1:
-  𝅘𝅥𝅯 beat 13/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 13/16 AllWire + Note Blocks (1)
   - ['Green OR BASS: Teal (A♭3)']
-
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 14/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 14/16 AllWire + Note Blocks (1)
   - ['Light Olive OR BASS: Periwinkle (B♭3)']
-
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 15/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 15/16 AllWire + Note Blocks (1)
   - ['Dark Red OR BASS: Lime (D♭4)']
-
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 16/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 16/16 AllWire + Note Blocks (1)
   - ['Light Olive OR BASS: Periwinkle (B♭3)']
-
 Measure 2:
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 1/16 AllWire : Note Blocks: 4:
+  𝅘𝅥𝅯 beat 1/16 AllWire + Note Blocks (4)
   - ['Light Olive OR BASS: Periwinkle (B♭3)', 'Dark Red OR BASS: Lime (D♭4)', 'Light Brown (F4)', 'Steel-Turtle OR BASS: Light Yellow (G♭2)']
-
   # spaces: 5
   - ['Tiny Delay', 'Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 4/16 AllWire : Note Blocks: 4:
+  𝅘𝅥𝅯 beat 4/16 AllWire + Note Blocks (4)
   - ['Light Olive OR BASS: Periwinkle (B♭3)', 'Dark Red OR BASS: Lime (D♭4)', 'Light Brown (F4)', 'Steel-Turtle OR BASS: Light Yellow (G♭2)']
-
   # spaces: 5
   - ['Tiny Delay', 'Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 7/16 AllWire : Note Blocks: 4:
+  𝅘𝅥𝅯 beat 7/16 AllWire + Note Blocks (4)
   - ['Green OR BASS: Teal (A♭3)', 'Light Mocha OR BASS: Guac (C4)', 'Mocha OR BASS: Beige (E♭4)', 'Rose-Turtle OR BASS: Olive (A♭2)']
-
   # spaces: 11
   - ['Tiny Delay', 'Tiny Delay', 'Tiny Delay', 'Tiny Delay', 'Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 13/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 13/16 AllWire + Note Blocks (1)
   - ['Green OR BASS: Teal (A♭3)']
-
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 14/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 14/16 AllWire + Note Blocks (1)
   - ['Light Olive OR BASS: Periwinkle (B♭3)']
-
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 15/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 15/16 AllWire + Note Blocks (1)
   - ['Dark Red OR BASS: Lime (D♭4)']
-
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 16/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 16/16 AllWire + Note Blocks (1)
   - ['Light Olive OR BASS: Periwinkle (B♭3)']
-
 Measure 3:
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 1/16 AllWire : Note Blocks: 4:
+  𝅘𝅥𝅯 beat 1/16 AllWire + Note Blocks (4)
   - ['Green OR BASS: Teal (A♭3)', 'Light Mocha OR BASS: Guac (C4)', 'Mocha OR BASS: Beige (E♭4)', 'MISSING OR BASS: Light Brown (F2)']
-
   # spaces: 5
   - ['Tiny Delay', 'Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 4/16 AllWire : Note Blocks: 4:
+  𝅘𝅥𝅯 beat 4/16 AllWire + Note Blocks (4)
   - ['Green OR BASS: Teal (A♭3)', 'Light Mocha OR BASS: Guac (C4)', 'Mocha OR BASS: Beige (E♭4)', 'MISSING OR BASS: Light Brown (F2)']
-
   # spaces: 5
   - ['Tiny Delay', 'Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 7/16 AllWire : Note Blocks: 4:
+  𝅘𝅥𝅯 beat 7/16 AllWire + Note Blocks (4)
   - ['Dark Purple OR BASS: Lavender (F3)', 'Light Olive OR BASS: Periwinkle (B♭3)', 'Dark Red OR BASS: Lime (D♭4)', 'Midnight-Turtle OR BASS: Cyan (B♭2)']
-
   # spaces: 5
   - ['Tiny Delay', 'Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 10/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 10/16 AllWire + Note Blocks (1)
   - ['Light Mocha OR BASS: Guac (C4)']
-
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 11/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 11/16 AllWire + Note Blocks (1)
   - ['Light Olive OR BASS: Periwinkle (B♭3)']
-
   # spaces: 3
   - ['Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 13/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 13/16 AllWire + Note Blocks (1)
   - ['Green OR BASS: Teal (A♭3)']
-
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 14/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 14/16 AllWire + Note Blocks (1)
   - ['Light Olive OR BASS: Periwinkle (B♭3)']
-
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 15/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 15/16 AllWire + Note Blocks (1)
   - ['Dark Red OR BASS: Lime (D♭4)']
-
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 16/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 16/16 AllWire + Note Blocks (1)
   - ['Light Olive OR BASS: Periwinkle (B♭3)']
-
 Measure 4:
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 1/16 AllWire : Note Blocks: 4:
+  𝅘𝅥𝅯 beat 1/16 AllWire + Note Blocks (4)
   - ['Gray OR BASS: Dark Brown (G♭3)', 'Light Olive OR BASS: Periwinkle (B♭3)', 'Dark Red OR BASS: Lime (D♭4)', 'BASS: Mocha (E♭2)']
-
   # spaces: 7
   - ['Tiny Delay', 'Tiny Delay', 'Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 5/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 5/16 AllWire + Note Blocks (1)
   - ['Mocha OR BASS: Beige (E♭4)']
-
   # spaces: 3
   - ['Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 7/16 AllWire : Note Blocks: 3:
+  𝅘𝅥𝅯 beat 7/16 AllWire + Note Blocks (3)
   - ['Green OR BASS: Teal (A♭3)', 'Light Mocha OR BASS: Guac (C4)', 'Rose-Turtle OR BASS: Olive (A♭2)']
-
   # spaces: 5
   - ['Tiny Delay', 'Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 10/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 10/16 AllWire + Note Blocks (1)
   - ['Light Olive OR BASS: Periwinkle (B♭3)']
-
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 11/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 11/16 AllWire + Note Blocks (1)
   - ['Green OR BASS: Teal (A♭3)']
-
   # spaces: 3
   - ['Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 13/16 AllWire : Note Blocks: 2:
+  𝅘𝅥𝅯 beat 13/16 AllWire + Note Blocks (2)
   - ['Green OR BASS: Teal (A♭3)', 'Rose-Turtle OR BASS: Olive (A♭2)']
-
   # spaces: 3
   - ['Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 15/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 15/16 AllWire + Note Blocks (1)
   - ['Green OR BASS: Teal (A♭3)']
-
 Measure 5:
   # spaces: 3
   - ['Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 1/16 AllWire : Note Blocks: 4:
+  𝅘𝅥𝅯 beat 1/16 AllWire + Note Blocks (4)
   - ['Green OR BASS: Teal (A♭3)', 'Mocha OR BASS: Beige (E♭4)', 'MISSING OR BASS: Light Brown (F2)', 'Cadet OR BASS: Light Blue (C3)']
-
   # spaces: 7
   - ['Tiny Delay', 'Tiny Delay', 'Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 5/16 AllWire : Note Blocks: 4:
+  𝅘𝅥𝅯 beat 5/16 AllWire + Note Blocks (4)
   - ['Dark Purple OR BASS: Lavender (F3)', 'Light Olive OR BASS: Periwinkle (B♭3)', 'Dark Red OR BASS: Lime (D♭4)', 'Midnight-Turtle OR BASS: Cyan (B♭2)']
-
   # spaces: 15
   - ['Tiny Delay', 'Tiny Delay', 'Tiny Delay', 'Tiny Delay', 'Tiny Delay', 'Tiny Delay', 'Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 13/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 13/16 AllWire + Note Blocks (1)
   - ['Green OR BASS: Teal (A♭3)']
-
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 14/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 14/16 AllWire + Note Blocks (1)
   - ['Light Olive OR BASS: Periwinkle (B♭3)']
-
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 15/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 15/16 AllWire + Note Blocks (1)
   - ['Dark Red OR BASS: Lime (D♭4)']
-
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 16/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 16/16 AllWire + Note Blocks (1)
   - ['Light Olive OR BASS: Periwinkle (B♭3)']
-
 Measure 6:
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 1/16 AllWire : Note Blocks: 4:
+  𝅘𝅥𝅯 beat 1/16 AllWire + Note Blocks (4)
   - ['Light Olive OR BASS: Periwinkle (B♭3)', 'Dark Red OR BASS: Lime (D♭4)', 'Light Brown (F4)', 'Steel-Turtle OR BASS: Light Yellow (G♭2)']
-
   # spaces: 5
   - ['Tiny Delay', 'Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 4/16 AllWire : Note Blocks: 4:
+  𝅘𝅥𝅯 beat 4/16 AllWire + Note Blocks (4)
   - ['Light Olive OR BASS: Periwinkle (B♭3)', 'Dark Red OR BASS: Lime (D♭4)', 'Light Brown (F4)', 'Steel-Turtle OR BASS: Light Yellow (G♭2)']
-
   # spaces: 5
   - ['Tiny Delay', 'Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 7/16 AllWire : Note Blocks: 4:
+  𝅘𝅥𝅯 beat 7/16 AllWire + Note Blocks (4)
   - ['Green OR BASS: Teal (A♭3)', 'Light Mocha OR BASS: Guac (C4)', 'Mocha OR BASS: Beige (E♭4)', 'Rose-Turtle OR BASS: Olive (A♭2)']
-
   # spaces: 11
   - ['Tiny Delay', 'Tiny Delay', 'Tiny Delay', 'Tiny Delay', 'Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 13/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 13/16 AllWire + Note Blocks (1)
   - ['Green OR BASS: Teal (A♭3)']
-
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 14/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 14/16 AllWire + Note Blocks (1)
   - ['Light Olive OR BASS: Periwinkle (B♭3)']
-
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 15/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 15/16 AllWire + Note Blocks (1)
   - ['Dark Red OR BASS: Lime (D♭4)']
-
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 16/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 16/16 AllWire + Note Blocks (1)
   - ['Light Olive OR BASS: Periwinkle (B♭3)']
-
 Measure 7:
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 1/16 AllWire : Note Blocks: 3:
+  𝅘𝅥𝅯 beat 1/16 AllWire + Note Blocks (3)
   - ['Green OR BASS: Teal (A♭3)', 'Olive (A♭4)', 'MISSING OR BASS: Light Brown (F2)']
-
   # spaces: 7
   - ['Tiny Delay', 'Tiny Delay', 'Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 5/16 AllWire : Note Blocks: 2:
+  𝅘𝅥𝅯 beat 5/16 AllWire + Note Blocks (2)
   - ['Light Mocha OR BASS: Guac (C4)', 'MISSING OR BASS: Light Brown (F2)']
-
   # spaces: 3
   - ['Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 7/16 AllWire : Note Blocks: 2:
+  𝅘𝅥𝅯 beat 7/16 AllWire + Note Blocks (2)
   - ['Dark Red OR BASS: Lime (D♭4)', 'Midnight-Turtle OR BASS: Cyan (B♭2)']
-
   # spaces: 5
   - ['Tiny Delay', 'Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 10/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 10/16 AllWire + Note Blocks (1)
   - ['Light Mocha OR BASS: Guac (C4)']
-
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 11/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 11/16 AllWire + Note Blocks (1)
   - ['Light Olive OR BASS: Periwinkle (B♭3)']
-
   # spaces: 3
   - ['Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 13/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 13/16 AllWire + Note Blocks (1)
   - ['Green OR BASS: Teal (A♭3)']
-
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 14/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 14/16 AllWire + Note Blocks (1)
   - ['Light Olive OR BASS: Periwinkle (B♭3)']
-
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 15/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 15/16 AllWire + Note Blocks (1)
   - ['Dark Red OR BASS: Lime (D♭4)']
-
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 16/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 16/16 AllWire + Note Blocks (1)
   - ['Light Olive OR BASS: Periwinkle (B♭3)']
-
 Measure 8:
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 1/16 AllWire : Note Blocks: 4:
+  𝅘𝅥𝅯 beat 1/16 AllWire + Note Blocks (4)
   - ['Gray OR BASS: Dark Brown (G♭3)', 'Light Olive OR BASS: Periwinkle (B♭3)', 'Dark Red OR BASS: Lime (D♭4)', 'BASS: Mocha (E♭2)']
-
   # spaces: 7
   - ['Tiny Delay', 'Tiny Delay', 'Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 5/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 5/16 AllWire + Note Blocks (1)
   - ['Mocha OR BASS: Beige (E♭4)']
-
   # spaces: 3
   - ['Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 7/16 AllWire : Note Blocks: 3:
+  𝅘𝅥𝅯 beat 7/16 AllWire + Note Blocks (3)
   - ['Green OR BASS: Teal (A♭3)', 'Light Mocha OR BASS: Guac (C4)', 'Rose-Turtle OR BASS: Olive (A♭2)']
-
   # spaces: 5
   - ['Tiny Delay', 'Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 10/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 10/16 AllWire + Note Blocks (1)
   - ['Light Olive OR BASS: Periwinkle (B♭3)']
-
   # spaces: 1
   - ['Straight Wire']
-  𝅘𝅥𝅯 beat 11/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 11/16 AllWire + Note Blocks (1)
   - ['Green OR BASS: Teal (A♭3)']
-
   # spaces: 3
   - ['Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 13/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 13/16 AllWire + Note Blocks (1)
   - ['Rose-Turtle OR BASS: Olive (A♭2)']
-
   # spaces: 3
   - ['Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 15/16 AllWire : Note Blocks: 1:
+  𝅘𝅥𝅯 beat 15/16 AllWire + Note Blocks (1)
   - ['Green OR BASS: Teal (A♭3)']
-
 Measure 9:
   # spaces: 3
   - ['Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 1/16 AllWire : Note Blocks: 4:
+  𝅘𝅥𝅯 beat 1/16 AllWire + Note Blocks (4)
   - ['Green OR BASS: Teal (A♭3)', 'Mocha OR BASS: Beige (E♭4)', 'MISSING OR BASS: Light Brown (F2)', 'Cadet OR BASS: Light Blue (C3)']
-
   # spaces: 7
   - ['Tiny Delay', 'Tiny Delay', 'Tiny Delay', 'Straight Wire']
-  𝅘𝅥𝅯 beat 5/16 AllWire : Note Blocks: 4:
+  𝅘𝅥𝅯 beat 5/16 AllWire + Note Blocks (4)
   - ['Dark Purple OR BASS: Lavender (F3)', 'Light Olive OR BASS: Periwinkle (B♭3)', 'Dark Red OR BASS: Lime (D♭4)', 'Midnight-Turtle OR BASS: Cyan (B♭2)']
-
 
 Total blocks: 290
 

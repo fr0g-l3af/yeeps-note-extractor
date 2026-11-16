@@ -66,6 +66,14 @@ function formatBpm(n) {
  *     quarterBpm: number,
  *     yeepsTempo: number,
  *   }[],
+ *   onsetWarnings?: {
+ *     measure: number,
+ *     divisionIndex: number,
+ *     originalDiv: number,
+ *     clampedDiv: number,
+ *     pitch: string,
+ *   }[],
+ *   fileName?: string,
  * }} options
  * @returns {string}
  */
@@ -78,6 +86,8 @@ export function formatYeepsText(measuresData, options) {
     gridId,
     followTempoChanges = false,
     tempoMarks = [],
+    onsetWarnings = [],
+    fileName = "",
   } = options;
   const grid = getGrid(gridId);
   const useFollow = followTempoChanges && tempoMarks.length > 0;
@@ -91,6 +101,7 @@ export function formatYeepsText(measuresData, options) {
 
   /** @type {string[]} */
   const lines = [];
+  if (fileName) lines.push(`# file=${fileName}`);
   lines.push(
     `# grid=${grid.id}, Yeeps ♩=${tempo} (${spacesPerDivision} space${
       spacesPerDivision === 1 ? "" : "s"
@@ -116,6 +127,30 @@ export function formatYeepsText(measuresData, options) {
    */
   const absoluteOffset = (measure, divisionBased) =>
     (cumBefore[measure] ?? 0) + divisionBased - 1;
+
+  /** @type {Map<string, typeof onsetWarnings>} */
+  const warningsBySlot = new Map();
+  for (const w of onsetWarnings) {
+    const key = `${w.measure}:${w.divisionIndex}`;
+    const list = warningsBySlot.get(key);
+    if (list) list.push(w);
+    else warningsBySlot.set(key, [w]);
+  }
+
+  /**
+   * @param {number} measure
+   * @param {number} divIndex
+   * @param {number} numDivisions
+   * @returns {string[]}
+   */
+  const onsetWarningLines = (measure, divIndex, numDivisions) => {
+    const list = warningsBySlot.get(`${measure}:${divIndex}`);
+    if (!list?.length) return [];
+    return list.map((w) => {
+      const display = w.pitch.replaceAll("-", "♭").replaceAll("#", "♯");
+      return `  # warning: out-of-bar onset clamped (MusicXML div ${w.originalDiv} → ${w.clampedDiv}) → beat ${divIndex + 1}/${numDivisions} (${display})`;
+    });
+  };
 
   const sortedMarks = useFollow
     ? tempoMarks
@@ -205,6 +240,9 @@ export function formatYeepsText(measuresData, options) {
           const spd = spacesAt(abs);
           spacerSource = spd <= 1 ? "" : packDelays(spd - 1).join(" + ");
         }
+        for (const warn of onsetWarningLines(measure, i, numDivisions)) {
+          lines.push(warn);
+        }
         const spacer = spacerSource
           ? `\n  ${division}b ${spacerSource}`
           : "";
@@ -240,7 +278,7 @@ export function formatYeepsText(measuresData, options) {
           let spaces;
           if (useFollow) {
             spaces = 0;
-            for (let abs = prevAbs + 1; abs <= currAbs; abs++) {
+            for (let abs = prevAbs; abs < currAbs; abs++) {
               spaces += spacesAt(abs);
             }
             spaces -= 1;
@@ -249,14 +287,18 @@ export function formatYeepsText(measuresData, options) {
           } else {
             spaces = gap * spacesPerDivision - 1;
           }
+          spaces = Math.max(0, spaces);
 
           lines.push(`  # spaces: ${spaces}`);
           delays = packDelays(spaces);
           spacer = `  - ${pyList(delays)}\n`;
         }
 
+        const warnBlock = onsetWarningLines(measure, divIndex, numDivisions)
+          .map((w) => `${w}\n`)
+          .join("");
         lines.push(
-          `${spacer}  ${grid.symbol} beat ${division}/${numDivisions} AllWire + Note Blocks (${colored.length})`,
+          `${spacer}${warnBlock}  ${grid.symbol} beat ${division}/${numDivisions} AllWire + Note Blocks (${colored.length})`,
         );
         lines.push(`  - ${pyList(colored)}`);
         blockCount += delays.length + colored.length + 1;

@@ -153,6 +153,37 @@ export function meterInfo(beats, beatType, gridQl = 0.25) {
   return { beatQl, barQl, sixteenthQl, gridQl };
 }
 
+/**
+ * Nominal bar length in MusicXML division units.
+ * @param {number} beats
+ * @param {number} beatType
+ * @param {number} divisions
+ * @returns {number}
+ */
+function barDivisions(beats, beatType, divisions) {
+  const { barQl } = meterInfo(beats, beatType);
+  return Math.max(1, Math.round(barQl * divisions));
+}
+
+/**
+ * Keep an onset inside the bar. Out-of-range onsets are pulled to the latest
+ * start that still fits `duration` (or 0 if before the bar).
+ * @param {number} offsetDiv
+ * @param {number} barDivs
+ * @param {number} [duration]
+ * @returns {{ onset: number, clamped: boolean, original: number }}
+ */
+function clampOnsetDiv(offsetDiv, barDivs, duration = 1) {
+  const original = offsetDiv;
+  if (Number.isFinite(offsetDiv) && offsetDiv >= 0 && offsetDiv < barDivs) {
+    return { onset: offsetDiv, clamped: false, original };
+  }
+  const dur = Math.max(1, Math.floor(duration) || 1);
+  const maxOnset = Math.max(0, barDivs - dur);
+  const onset = offsetDiv < 0 ? 0 : maxOnset;
+  return { onset, clamped: true, original };
+}
+
 /** MusicXML beat-unit to quarter lengths */
 const BEAT_UNIT_QL = {
   maxima: 32,
@@ -383,16 +414,20 @@ function collectOnsetOffsetQls(xmlTextOrDoc) {
           (t) => t.getAttribute("type") === "stop",
         );
 
+        const barDivs = barDivisions(beats, beatType, divisions);
+
         if (isChord) {
           if (!isRest && !isTieContinuation && child.querySelector("pitch")) {
-            onsetDivs.push(lastNoteOnset);
+            const { onset } = clampOnsetDiv(lastNoteOnset, barDivs, 1);
+            onsetDivs.push(onset);
           }
           continue;
         }
 
-        lastNoteOnset = cursor;
+        const { onset } = clampOnsetDiv(cursor, barDivs, duration || 1);
+        lastNoteOnset = onset;
         if (!isRest && !isTieContinuation && child.querySelector("pitch")) {
-          onsetDivs.push(cursor);
+          onsetDivs.push(onset);
         }
         cursor += duration;
         maxCursor = Math.max(maxCursor, cursor);
@@ -555,6 +590,13 @@ export function peekScoreSettings(xmlTextOrDoc, options = {}) {
  *   measuresData: Record<number, Record<number, string[]>>,
  *   measureDivisions: Record<number, number>,
  *   tempoMarks: TempoMark[],
+ *   onsetWarnings: {
+ *     measure: number,
+ *     divisionIndex: number,
+ *     originalDiv: number,
+ *     clampedDiv: number,
+ *     pitch: string,
+ *   }[],
  * }}
  */
 export function extractPitchesByMeasureAndDivision(xmlTextOrDoc, options = {}) {
@@ -571,6 +613,14 @@ export function extractPitchesByMeasureAndDivision(xmlTextOrDoc, options = {}) {
    * @type {Map<string, TempoMark & { partIndex: number }>}
    */
   const marksBySlot = new Map();
+  /** @type {{
+   *   measure: number,
+   *   divisionIndex: number,
+   *   originalDiv: number,
+   *   clampedDiv: number,
+   *   pitch: string,
+   * }[]} */
+  const onsetWarnings = [];
   const parts = score.querySelectorAll("part");
   if (!parts.length) {
     throw new Error("No parts found in score");
@@ -621,7 +671,11 @@ export function extractPitchesByMeasureAndDivision(xmlTextOrDoc, options = {}) {
       let cursor = 0;
       let maxCursor = 0;
       let lastNoteOnset = 0;
-      /** @type {{ offsetDiv: number, pitch: string }[]} */
+      /** @type {{
+       *   offsetDiv: number,
+       *   pitch: string,
+       *   clamp: { originalDiv: number, clampedDiv: number } | null,
+       * }[]} */
       const events = [];
       /** @type {{ offsetDiv: number, quarterBpm: number, metronome: TempoMark["metronome"] }[]} */
       const pendingTempos = [];
@@ -680,27 +734,48 @@ export function extractPitchesByMeasureAndDivision(xmlTextOrDoc, options = {}) {
         const isTieContinuation = ties.some(
           (t) => t.getAttribute("type") === "stop",
         );
+        const barDivs = barDivisions(beats, beatType, divisions);
 
         if (isChord) {
           if (!isRest && !isTieContinuation) {
             const pitchEl = child.querySelector("pitch");
             if (pitchEl) {
+              const { onset, clamped, original } = clampOnsetDiv(
+                lastNoteOnset,
+                barDivs,
+                1,
+              );
+              const pitch = pitchElementToName(pitchEl);
               events.push({
-                offsetDiv: lastNoteOnset,
-                pitch: pitchElementToName(pitchEl),
+                offsetDiv: onset,
+                pitch,
+                clamp:
+                  clamped
+                    ? { originalDiv: original, clampedDiv: onset }
+                    : null,
               });
             }
           }
           continue;
         }
 
-        lastNoteOnset = cursor;
+        const { onset, clamped, original } = clampOnsetDiv(
+          cursor,
+          barDivs,
+          duration || 1,
+        );
+        lastNoteOnset = onset;
         if (!isRest && !isTieContinuation) {
           const pitchEl = child.querySelector("pitch");
           if (pitchEl) {
+            const pitch = pitchElementToName(pitchEl);
             events.push({
-              offsetDiv: cursor,
-              pitch: pitchElementToName(pitchEl),
+              offsetDiv: onset,
+              pitch,
+              clamp:
+                clamped
+                  ? { originalDiv: original, clampedDiv: onset }
+                  : null,
             });
           }
         }
@@ -723,17 +798,30 @@ export function extractPitchesByMeasureAndDivision(xmlTextOrDoc, options = {}) {
 
       for (const ev of events) {
         const offsetQl = ev.offsetDiv / divisions + offsetAdjustment;
-        const divisionIndex = Math.floor(offsetQl / gridQl + 1e-9);
+        let divisionIndex = Math.floor(offsetQl / gridQl + 1e-9);
+        if (divisionIndex < 0) divisionIndex = 0;
+        if (divisionIndex >= slots) divisionIndex = slots - 1;
         if (!measuresData[measureNumber][divisionIndex]) {
           measuresData[measureNumber][divisionIndex] = [];
         }
         measuresData[measureNumber][divisionIndex].push(ev.pitch);
+        if (ev.clamp) {
+          onsetWarnings.push({
+            measure: measureNumber,
+            divisionIndex,
+            originalDiv: ev.clamp.originalDiv,
+            clampedDiv: ev.clamp.clampedDiv,
+            pitch: ev.pitch,
+          });
+        }
       }
 
       for (const tempoEv of pendingTempos) {
-        const divisionIndex = Math.floor(
+        let divisionIndex = Math.floor(
           (tempoEv.offsetDiv / divisions + offsetAdjustment) / gridQl + 1e-9,
         );
+        if (divisionIndex < 0) divisionIndex = 0;
+        if (divisionIndex >= slots) divisionIndex = slots - 1;
         putTempoMark(
           partIndex,
           measureNumber,
@@ -755,5 +843,12 @@ export function extractPitchesByMeasureAndDivision(xmlTextOrDoc, options = {}) {
     }))
     .sort((a, b) => a.measure - b.measure || a.divisionIndex - b.divisionIndex);
 
-  return { measuresData, measureDivisions, tempoMarks };
+  onsetWarnings.sort(
+    (a, b) =>
+      a.measure - b.measure ||
+      a.divisionIndex - b.divisionIndex ||
+      a.originalDiv - b.originalDiv,
+  );
+
+  return { measuresData, measureDivisions, tempoMarks, onsetWarnings };
 }

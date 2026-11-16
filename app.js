@@ -379,7 +379,7 @@ form.addEventListener("submit", async (event) => {
       ({ doc } = await loadScore(file));
       syncFollowControl();
     }
-    const { measuresData, measureDivisions, tempoMarks } =
+    const { measuresData, measureDivisions, tempoMarks, onsetWarnings } =
       extractPitchesByMeasureAndDivision(doc, { gridId });
     assertConvertible(doc, gridId, followTemposInput.checked, tempoMarks);
     lastText = formatYeepsText(measuresData, {
@@ -390,6 +390,8 @@ form.addEventListener("submit", async (event) => {
       gridId,
       followTempoChanges: followTemposInput.checked,
       tempoMarks,
+      onsetWarnings,
+      fileName: file.name,
     });
     lastBaseName =
       file.name.replace(/\.(mxl|musicxml|xml)$/i, "") || "yeeps-notes";
